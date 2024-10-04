@@ -88,11 +88,12 @@ class Blizzard_Api_Data {
         }
 
         // Parameters for the URL
+        $region = get_option('blizzard_api_region', 'eu');
         $realm = get_option('blizzard_api_realm', 'dun-modr');
         $guild = get_option('blizzard_api_guild', 'artic-tempest');
 
         // Construct the URL with parameters
-        $url = "https://eu.api.blizzard.com/data/wow/guild/{$realm}/{$guild}?namespace=profile-eu";
+        $url = "https://eu.api.blizzard.com/data/wow/guild/{$realm}/{$guild}?namespace=profile-{$region}";
 
         // Initialize cURL
         $curl = curl_init();
@@ -165,11 +166,12 @@ class Blizzard_Api_Data {
         }
 
         // Parameters for the URL
+        $region = get_option('blizzard_api_region', 'eu');
         $realm = get_option('blizzard_api_realm', 'dun-modr');
         $guild = get_option('blizzard_api_guild', 'artic-tempest');
 
         // Construct the URL with parameters
-        $url = "https://eu.api.blizzard.com/data/wow/guild/{$realm}/{$guild}/roster?namespace=profile-eu";
+        $url = "https://eu.api.blizzard.com/data/wow/guild/{$realm}/{$guild}/roster?namespace=profile-{$region}";
 
         // Initialize cURL
         $curl = curl_init();

@@ -43,8 +43,12 @@ class Blizzard_Api_Activator {
         $default_settings = array(
             'client_id'     => '0a82dee3741846b19594e57957f5b81f',
             'client_secret' => 'I91hRxX42R2dZ31omkLUf2MX2cSReUcQ',
-            'realm'         => 'dun-modr',
-            'guild'         => 'artic-tempest',
+            'realm'         => '',
+            'guild'         => '',
+			'region'         => '',
+            'realm_original'         => '',
+            'guild_original'         => '',
+			'region_original'         => '',
         );
 
         // Save each setting
