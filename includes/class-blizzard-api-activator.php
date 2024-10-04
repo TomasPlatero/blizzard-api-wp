@@ -48,7 +48,6 @@ class Blizzard_Api_Activator {
 			'region'         => '',
             'realm_original'         => '',
             'guild_original'         => '',
-			'region_original'         => '',
         );
 
         // Save each setting

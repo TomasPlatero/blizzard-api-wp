@@ -1,4 +1,5 @@
 <?php
+require_once plugin_dir_path( __DIR__ ) . 'includes/class-blizzard-api-data.php';
 
 /**
  * The admin-specific functionality of the plugin.
@@ -10,111 +11,102 @@
  * @subpackage Blizzard_Api/admin
  */
 
-/**
- * The admin-specific functionality of the plugin.
- *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
- * @package    Blizzard_Api
- * @subpackage Blizzard_Api/admin
- * @author     Zatoshi <admin@artictempest.es>
- */
 class Blizzard_Api_Admin {
 
-    /**
-     * The ID of this plugin.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @var      string    $plugin_name    The ID of this plugin.
-     */
     private $plugin_name;
-
-    /**
-     * The version of this plugin.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @var      string    $version    The current version of this plugin.
-     */
     private $version;
 
-    /**
-     * Initialize the class and set its properties.
-     *
-     * @since    1.0.0
-     * @param      string    $plugin_name       The name of this plugin.
-     * @param      string    $version    The version of this plugin.
-     */
     public function __construct( $plugin_name, $version ) {
-
         $this->plugin_name = $plugin_name;
         $this->version = $version;
+
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
     }
 
-    /**
-     * Register the stylesheets for the admin area.
-     *
-     * @since    1.0.0
-     */
-    public function enqueue_styles() {
-
-        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/blizzard-api-admin.css', array(), $this->version, 'all' );
-    }
-
-    /**
-     * Register the JavaScript for the admin area.
-     *
-     * @since    1.0.0
-     */
-    public function enqueue_scripts() {
-
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/blizzard-api-admin.js', array( 'jquery' ), $this->version, false );
-    }
+	public function enqueue_styles() {
+		wp_enqueue_style( 
+			$this->plugin_name, 
+			plugin_dir_url( __FILE__ ) . 'css/blizzard-api-admin.css', 
+			array(), 
+			$this->version, 
+			'all' 
+		);
+	
+		// Enqueue Highlight.js stylesheet
+		wp_enqueue_style( 
+			'highlight-js', 
+			'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/stackoverflow-light.min.css', // Cambia 'default.min.css' por el tema que prefieras
+			array(), 
+			'11.7.0', 
+			'all' 
+		);
+	}
+	
+	public function enqueue_scripts() {
+		wp_enqueue_script( 
+			$this->plugin_name, 
+			plugin_dir_url( __FILE__ ) . 'js/blizzard-api-admin.js', 
+			array( 'jquery' ), 
+			$this->version, 
+			false 
+		);
+	
+		// Enqueue Highlight.js script
+		wp_enqueue_script( 
+			'highlight-js', 
+			'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js', 
+			array(), 
+			'11.7.0', 
+			true // Carga en el footer
+		);
+	
+		// Inicializa Highlight.js después de que se carga
+		wp_add_inline_script( 
+			'highlight-js', 
+			'hljs.highlightAll();' 
+		);
+	}
+	
 
     public function add_admin_menu() {
-        // Menú principal
         add_menu_page(
-            __( 'Blizzard API', 'blizzard-api' ),                   // Título de la página
-            __( 'Blizzard API', 'blizzard-api' ),                   // Título del menú
-            '',                  // Capacidad
-            $this->plugin_name,               // Slug del menú
-            '', // Función de devolución de llamada
-            'dashicons-admin-generic',        // Icono
-            80                                 // Posición
+            __( 'Blizzard API', 'blizzard-api' ),
+            __( 'Blizzard API', 'blizzard-api' ),
+            '',
+            $this->plugin_name,
+            array( $this, 'display_settings_page' ),
+            'dashicons-admin-generic',
+            80
         );
 
-        // Submenú para Settings
         add_submenu_page(
-            $this->plugin_name,                // Slug del menú padre
-            __( 'Settings', 'blizzard-api' ),  // Título de la página
-            __( 'Settings', 'blizzard-api' ),  // Título del submenú
-            'manage_options',                  // Capacidad
-            'blizzard-api-settings',           // Slug del submenú
-            array( $this, 'display_settings_page' ) // Función de devolución de llamada
+            $this->plugin_name,
+            __( 'Settings', 'blizzard-api' ),
+            __( 'Settings', 'blizzard-api' ),
+            'manage_options',
+            'blizzard-api-settings',
+            array( $this, 'display_settings_page' )
         );
 
-        // Submenú para actualizar el transient
         add_submenu_page(
-            $this->plugin_name,                // Slug del menú padre
-            __( 'Refresh Data', 'blizzard-api' ), // Título de la página
-            __( 'Refresh Data', 'blizzard-api' ), // Título del submenú
-            'manage_options',                  // Capacidad
-            'blizzard-api-update',             // Slug del submenú
-            array( $this, 'display_update_page' ) // Función de devolución de llamada
+            $this->plugin_name,
+            __( 'Refresh Data', 'blizzard-api' ),
+            __( 'Refresh Data', 'blizzard-api' ),
+            'manage_options',
+            'blizzard-api-update',
+            array( $this, 'display_update_page' )
         );
 
-		// Submenú para actualizar el transient
-		add_submenu_page(
-			$this->plugin_name,                // Slug del menú padre
-			__( 'Data Visualizer', 'blizzard-api' ), // Título de la página
-			__( 'Data Visualizer', 'blizzard-api' ), // Título del submenú
-			'manage_options',                  // Capacidad
-			'blizzard-api-data-visualizer',             // Slug del submenú
-			array( $this, 'display_data_visualizer_page' ) // Función de devolución de llamada
-		);
+        add_submenu_page(
+            $this->plugin_name,
+            __( 'Data Visualizer', 'blizzard-api' ),
+            __( 'Data Visualizer', 'blizzard-api' ),
+            'manage_options',
+            'blizzard-api-data-visualizer',
+            array( $this, 'display_data_visualizer_page' )
+        );
     }
 
     public function display_settings_page() {
@@ -125,7 +117,7 @@ class Blizzard_Api_Admin {
         include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/blizzard-api-admin-update.php';
     }
 
-	public function display_data_visualizer_page() {
+    public function display_data_visualizer_page() {
         include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/blizzard-api-admin-data-visualizer.php';
     }
 }
