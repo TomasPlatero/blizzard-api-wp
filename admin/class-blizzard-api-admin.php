@@ -105,6 +105,16 @@ class Blizzard_Api_Admin {
             'blizzard-api-update',             // Slug del submenú
             array( $this, 'display_update_page' ) // Función de devolución de llamada
         );
+
+		// Submenú para actualizar el transient
+		add_submenu_page(
+			$this->plugin_name,                // Slug del menú padre
+			__( 'Data Visualizer', 'blizzard-api' ), // Título de la página
+			__( 'Data Visualizer', 'blizzard-api' ), // Título del submenú
+			'manage_options',                  // Capacidad
+			'blizzard-api-data-visualizer',             // Slug del submenú
+			array( $this, 'display_data_visualizer_page' ) // Función de devolución de llamada
+		);
     }
 
     public function display_settings_page() {
@@ -113,5 +123,9 @@ class Blizzard_Api_Admin {
 
     public function display_update_page() {
         include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/blizzard-api-admin-update.php';
+    }
+
+	public function display_data_visualizer_page() {
+        include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/blizzard-api-admin-data-visualizer.php';
     }
 }

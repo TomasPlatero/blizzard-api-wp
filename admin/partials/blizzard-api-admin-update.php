@@ -13,27 +13,41 @@
  */
 require_once plugin_dir_path( __DIR__ ) . '../includes/class-blizzard-api-data.php';
 
-$transient_updated = false; // Variable para verificar si se ha actualizado el transient
-$update_message = ''; // Mensaje de actualización
+$transient_updated = false;
+$update_message = '';
+$warning_message = ''; // Mensaje de advertencia
 
 if ( isset( $_POST['update_guild_data'] ) ) {
-    // Lógica para actualizar el transient de la hermandad
-    Blizzard_Api_Data::get_blizzard_guild_data(); // Llama a la función que actualiza los datos
-    $transient_updated = true; // Establecer la variable a true si se actualiza
-    $update_message = __( 'The guild data has been successfully updated.', 'blizzard-api' ); // Mensaje para hermandad
+    $data = Blizzard_Api_Data::get_blizzard_guild_data();
+    
+    if ($data === null) {
+        $warning_message = __( 'Warning: The guild data could not be updated the response from blizzard was empty, check the plugin Settings.', 'blizzard-api' );
+    } else {
+        $transient_updated = true;
+        $update_message = __( 'The guild data has been successfully updated.', 'blizzard-api' );
+    }
 }
 
 if ( isset( $_POST['update_guild_roster_data'] ) ) {
-    // Lógica para actualizar el transient del roster
-    Blizzard_Api_Data::get_blizzard_guild_roster_data(); // Llama a la función que actualiza los datos
-    $transient_updated = true; // Establecer la variable a true si se actualiza
-    $update_message = __( 'The roster data has been successfully updated.', 'blizzard-api' ); // Mensaje para roster
+    $data = Blizzard_Api_Data::get_blizzard_guild_roster_data();
+    
+    if ($data === null) {
+        $warning_message = __( 'Warning: The guild data could not be updated the response from blizzard was empty, check the plugin Settings', 'blizzard-api' );
+    } else {
+        $transient_updated = true;
+        $update_message = __( 'The roster data has been successfully updated.', 'blizzard-api' );
+    }
 }
 
 ?>
 
+<!-- Mostrar mensajes de advertencia o éxito -->
 <?php if ( $transient_updated ): ?>
     <div class="updated"><p><?php echo esc_html( $update_message ); ?></p></div>
+<?php endif; ?>
+
+<?php if ( !empty($warning_message) ): ?>
+    <div class="notice notice-warning"><p><?php echo esc_html( $warning_message ); ?></p></div>
 <?php endif; ?>
 
 <div class="wrap">
@@ -53,7 +67,7 @@ if ( isset( $_POST['update_guild_roster_data'] ) ) {
     <h2><?php _e( 'Guild Member Data', 'blizzard-api' ); ?></h2>
     <p><?php _e( 'Use the button below to update your guild member data. This will ensure that the most recent information is reflected on your site.', 'blizzard-api' ); ?></p>
     
-    <form method="post" action="" style="margin-top: 20px;º">
+    <form method="post" action="" style="margin-top: 20px;">
         <input type="submit" name="update_guild_roster_data" class="button button-primary" value="<?php _e( 'Update', 'blizzard-api' ); ?>" />
     </form>
 </div>

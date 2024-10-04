@@ -60,11 +60,11 @@ if ( isset( $_POST['submit'] ) ) {
         <table class="form-table">
             <tr valign="top">
                 <th scope="row"><?php _e( 'Client ID', 'blizzard-api' ); ?></th>
-                <td><input type="text" name="client_id" value="<?php echo esc_attr( get_option('blizzard_api_client_id') ); ?>" /></td>
+                <td><input type="text" name="client_id" value="<?php echo esc_attr( get_option('blizzard_api_client_id') ); ?>" required /></td>
             </tr>
             <tr valign="top">
                 <th scope="row"><?php _e( 'Client Secret', 'blizzard-api' ); ?></th>
-                <td><input type="text" name="client_secret" value="<?php echo esc_attr( get_option('blizzard_api_client_secret') ); ?>" /></td>
+                <td><input type="text" name="client_secret" value="<?php echo esc_attr( get_option('blizzard_api_client_secret') ); ?>" required /></td>
             </tr>
         </table>
 
@@ -75,15 +75,15 @@ if ( isset( $_POST['submit'] ) ) {
             <tr valign="top">
                 <th scope="row"><?php _e( 'Region', 'blizzard-api' ); ?></th>
                 <!-- Show the original input but save slugified version -->
-                <td><input type="text" name="region" value="<?php echo esc_attr( get_option('blizzard_api_region_original') ); ?>" /></td>
+                <td><input type="text" name="region" value="<?php echo esc_attr( get_option('blizzard_api_region_original') ); ?>" required /></td>
             </tr>
             <tr valign="top">
                 <th scope="row"><?php _e( 'Realm', 'blizzard-api' ); ?></th>
-                <td><input type="text" name="realm" value="<?php echo esc_attr( get_option('blizzard_api_realm_original') ); ?>" /></td>
+                <td><input type="text" name="realm" value="<?php echo esc_attr( get_option('blizzard_api_realm_original') ); ?>" required /></td>
             </tr>
             <tr valign="top">
                 <th scope="row"><?php _e( 'Guild', 'blizzard-api' ); ?></th>
-                <td><input type="text" name="guild" value="<?php echo esc_attr( get_option('blizzard_api_guild_original') ); ?>" /></td>
+                <td><input type="text" name="guild" value="<?php echo esc_attr( get_option('blizzard_api_guild_original') ); ?>" required /></td>
             </tr>
         </table>
 

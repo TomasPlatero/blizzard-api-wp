@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Blizzard Api Connector\n"
-"POT-Creation-Date: 2024-10-04 18:21+0200\n"
-"PO-Revision-Date: 2024-10-04 18:21+0200\n"
+"POT-Creation-Date: 2024-10-04 18:49+0200\n"
+"PO-Revision-Date: 2024-10-04 18:57+0200\n"
 "Last-Translator: Tomás Platero <taplatero@outlook.es>\n"
 "Language-Team: Tomás Platero <taplatero@outlook.es>\n"
 "Language: es_ES\n"
@@ -33,6 +33,47 @@ msgstr "Opciones"
 #: admin/class-blizzard-api-admin.php:103
 msgid "Refresh Data"
 msgstr "Actualizar Datos"
+
+#: admin/class-blizzard-api-admin.php:112
+#: admin/class-blizzard-api-admin.php:113
+msgid "Data Visualizer"
+msgstr "Visualizar Datos"
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:27
+msgid "Blizzard API JSON Viewer"
+msgstr "Configuración de la API de Blizzard"
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:30
+msgid "Guild Data"
+msgstr "Datos de la Hermandad"
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:34
+msgid "No data available for guild."
+msgstr "No hay datos que mostrar."
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:38
+msgid "Guild Roster Data"
+msgstr "Datos de los Miembros de la Hermandad"
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:42
+msgid "No data available for guild roster."
+msgstr "No hay datos que mostrar."
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:52
+msgid "Refresh Guild Data"
+msgstr "Actualizar Datos"
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:53
+msgid "Refresh Guild Roster Data"
+msgstr "Actualizar Datos"
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:59
+msgid "Guild data refreshed."
+msgstr "Datos de la hermandad actualizados."
+
+#: admin/partials/blizzard-api-admin-data-visualizer.php:64
+msgid "Guild roster data refreshed."
+msgstr "Datos de los miembros de hermandad actualizados."
 
 #: admin/partials/blizzard-api-admin-display.php:39
 msgid "Settings saved. You may need to refresh the data."
@@ -82,23 +123,40 @@ msgstr "Reino"
 msgid "Guild"
 msgstr "Hermandad"
 
-#: admin/partials/blizzard-api-admin-update.php:23
+#: admin/partials/blizzard-api-admin-update.php:24
+msgid ""
+"Warning: The guild data could not be updated the response from blizzard was "
+"empty, check the plugin Settings."
+msgstr ""
+"Advertencia: No se pudieron actualizar los datos de la hermandad, la "
+"respuesta de Blizzard estaba vacía te recomiendo revisar la configuración "
+"del plugin"
+
+#: admin/partials/blizzard-api-admin-update.php:27
 msgid "The guild data has been successfully updated."
 msgstr "Los datos de la hermandad se han actualizado con éxito."
 
-#: admin/partials/blizzard-api-admin-update.php:30
+#: admin/partials/blizzard-api-admin-update.php:35
+msgid ""
+"Warning: The guild data could not be updated the response from blizzard was "
+"empty, check the plugin Settings"
+msgstr ""
+"Advertencia: No se pudieron actualizar los datos de la hermandad. La "
+"respuesta de Blizzard estaba vacía, revisa la configuración del plugin"
+
+#: admin/partials/blizzard-api-admin-update.php:38
 msgid "The roster data has been successfully updated."
 msgstr "Los datos del roster se han actualizado con éxito."
 
-#: admin/partials/blizzard-api-admin-update.php:40
+#: admin/partials/blizzard-api-admin-update.php:54
 msgid "Update Data"
 msgstr "Actualizar Datos"
 
-#: admin/partials/blizzard-api-admin-update.php:42
+#: admin/partials/blizzard-api-admin-update.php:56
 msgid "Note:"
 msgstr "Nota:"
 
-#: admin/partials/blizzard-api-admin-update.php:42
+#: admin/partials/blizzard-api-admin-update.php:56
 msgid ""
 "Clicking 'Update' will remove the cached data stored in WordPress for your "
 "clan across all options."
@@ -106,11 +164,11 @@ msgstr ""
 "Al hacer clic en 'Actualizar', se eliminarán los datos almacenados en la "
 "caché de WordPress para tu clan en todas las opciones."
 
-#: admin/partials/blizzard-api-admin-update.php:46
+#: admin/partials/blizzard-api-admin-update.php:60
 msgid "General Guild Data"
 msgstr "Datos Generales de la Hermandad"
 
-#: admin/partials/blizzard-api-admin-update.php:47
+#: admin/partials/blizzard-api-admin-update.php:61
 msgid ""
 "Use the button below to update your guild data. This will ensure that the "
 "most recent information is reflected on your site."
@@ -118,16 +176,16 @@ msgstr ""
 "Utiliza el botón de abajo para actualizar los datos de tu hermandad. Esto "
 "asegurará que la información más reciente se refleje en tu sitio."
 
-#: admin/partials/blizzard-api-admin-update.php:50
-#: admin/partials/blizzard-api-admin-update.php:57
+#: admin/partials/blizzard-api-admin-update.php:64
+#: admin/partials/blizzard-api-admin-update.php:71
 msgid "Update"
 msgstr "Actualizar"
 
-#: admin/partials/blizzard-api-admin-update.php:53
+#: admin/partials/blizzard-api-admin-update.php:67
 msgid "Guild Member Data"
 msgstr "Datos de los Miembros de la Hermandad"
 
-#: admin/partials/blizzard-api-admin-update.php:54
+#: admin/partials/blizzard-api-admin-update.php:68
 msgid ""
 "Use the button below to update your guild member data. This will ensure that "
 "the most recent information is reflected on your site."
