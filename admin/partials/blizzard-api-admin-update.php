@@ -39,7 +39,7 @@ if ( isset( $_POST['update_guild_roster_data'] ) ) {
 <div class="wrap">
     <h1><?php _e( 'Update Data', 'blizzard-api' ); ?></h1>
     <div class="notice notice-info">
-        <p><strong><?php _e( 'Note:', 'blizzard-api' ); ?></strong> <?php _e( 'Clicking "Update" will remove the cached data stored in WordPress for your clan across all options.', 'blizzard-api' ); ?></p>
+        <p><strong><?php _e( 'Note:', 'blizzard-api' ); ?></strong> <?php _e( "Clicking 'Update' will remove the cached data stored in WordPress for your clan across all options.", 'blizzard-api' ); ?></p>
     </div>
     <hr>
 
