@@ -27,7 +27,13 @@ class Blizzard_Api_Deactivator {
             'blizzard_api_client_secret',
             'blizzard_api_realm',
             'blizzard_api_guild',
-			'blizzard_api_region',
+            'blizzard_api_region',
+            'blizzard_api_realm_original',
+            'blizzard_api_guild_original',
+            'blizzard_api_games_original',
+            'blizzard_api_games_slug',
+            'blizzard_api_game',
+            'blizzard_api_character_name'
         );
 
         // Loop through options and delete them
