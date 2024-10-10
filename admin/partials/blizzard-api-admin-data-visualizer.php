@@ -12,6 +12,7 @@
  * @subpackage Blizzard_Api/admin/partials
  */
 require_once plugin_dir_path( __DIR__ ) . '../includes/class-blizzard-api-data.php';
+require_once plugin_dir_path(__DIR__) . '../includes/world-of-warcraft/class-blizzard-api-wow.php';
 
 // Verifica los permisos del usuario
 if (!current_user_can('manage_options')) {
@@ -19,8 +20,8 @@ if (!current_user_can('manage_options')) {
 }
 
 // Obtener datos de la API
-$guild_data = Blizzard_Api_Data::get_blizzard_guild_data();
-$roster_data = Blizzard_Api_Data::get_blizzard_guild_roster_data();
+$guild_data = Blizzard_Api_Wow::get_blizzard_guild_data();
+$roster_data = Blizzard_Api_Wow::get_blizzard_guild_roster_data();
 
 echo '<div class="wrap">';
 echo '<h1>' . __('Blizzard API JSON Viewer', 'blizzard-api') . '</h1>';

@@ -46,7 +46,7 @@ class Blizzard_Api_Activator {
             'client_secret' => 'I91hRxX42R2dZ31omkLUf2MX2cSReUcQ',
             'realm'         => '',
             'guild'         => '',
-			'region'         => '',
+			'region'        => '',
             'realm_original'         => '',
             'guild_original'         => '',
             'games_original'         => array('World of Warcraft','Diablo 3', 'Hearthstone', 'Starcraft 2'),
