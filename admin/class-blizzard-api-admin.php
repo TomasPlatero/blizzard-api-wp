@@ -23,6 +23,9 @@ class Blizzard_Api_Admin {
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+        add_action('wp_ajax_blizzard_api_save_settings', array($this, 'blizzard_api_save_settings'));
+        add_action('wp_ajax_blizzard_api_fetch_next_step', array($this, 'blizzard_api_fetch_next_step'));
+        
     }
 
 	public function enqueue_styles() {
@@ -120,4 +123,64 @@ class Blizzard_Api_Admin {
     public function display_data_visualizer_page() {
         include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/blizzard-api-admin-data-visualizer.php';
     }
+
+    public function blizzard_api_save_settings() {
+		// Aquí guarda las configuraciones y devuelve la primera acción a realizar.
+		$response = array(
+			'success' => true,
+			'data' => array(
+				'message' => __('Settings saved. Fetching guild data...', 'blizzard-api'),
+				'progress' => 10,
+				'next_step' => 'fetch_guild_data',
+			),
+		);
+	
+		wp_send_json($response);
+	}
+	
+	public function blizzard_api_fetch_next_step() {
+		$step = isset($_POST['step']) ? sanitize_text_field($_POST['step']) : '';
+	
+		switch ($step) {
+			case 'fetch_guild_data':
+				Blizzard_Api_Wow::get_blizzard_guild_data();
+				$response = array(
+					'success' => true,
+					'data' => array(
+						'message' => __('Guild data fetched. Fetching roster data...', 'blizzard-api'),
+						'progress' => 30,
+						'next_step' => 'fetch_roster_data',
+					),
+				);
+				break;
+	
+			case 'fetch_roster_data':
+				Blizzard_Api_RaiderIO::get_guild_members();
+				$response = array(
+					'success' => true,
+					'data' => array(
+						'message' => __('Roster data fetched. Downloading images...', 'blizzard-api'),
+						'progress' => 60,
+						'next_step' => 'download_images',
+					),
+				);
+				break;
+	
+			case 'download_images':
+				$response = array(
+					'success' => true,
+					'data' => array(
+						'message' => __('Images downloaded. Finishing...', 'blizzard-api'),
+						'progress' => 100,
+					),
+				);
+				break;
+	
+			default:
+				$response = array('success' => false, 'data' => array('message' => __('Unknown step.', 'blizzard-api')));
+				break;
+		}
+	
+		wp_send_json($response);
+	}
 }

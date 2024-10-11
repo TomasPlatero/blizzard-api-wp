@@ -20,8 +20,6 @@ if (!current_user_can('manage_options')) {
 }
 
 // Obtener datos de la API
-// $guild_data = Blizzard_Api_Wow::get_blizzard_guild_data();
-// $roster_data = Blizzard_Api_Wow::get_blizzard_guild_roster_data();
 $guild_data = get_transient( "blizzard_guild_data" );
 $roster_data = get_transient( "blizzard_guild_roster_data" );
 

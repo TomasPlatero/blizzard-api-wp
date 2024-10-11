@@ -25,12 +25,10 @@ class Blizzard_Api_Activator {
      * @since 1.0.0
      */
     public static function activate() {
-        require_once plugin_dir_path( __FILE__ ) . '../includes/class-blizzard-api-data.php'; // Asegúrate de que esta ruta sea correcta
-        require_once plugin_dir_path( __FILE__ ) . '../includes/world-of-warcraft/class-blizzard-api-wow.php'; // Asegúrate de que esta ruta sea correcta
+        require_once plugin_dir_path( __FILE__ ) . '../includes/class-blizzard-api-data.php';
+        require_once plugin_dir_path( __FILE__ ) . '../includes/world-of-warcraft/class-blizzard-api-wow.php';
 
         self::save_initial_settings();
-        self::get_blizzard_guild_data();
-		self::get_blizzard_guild_roster_data();
 
     }
 
@@ -46,11 +44,11 @@ class Blizzard_Api_Activator {
             'client_secret' => 'I91hRxX42R2dZ31omkLUf2MX2cSReUcQ',
             'realm'         => '',
             'guild'         => '',
-			'region'        => '',
-            'realm_original'         => '',
-            'guild_original'         => '',
-            'games_original'         => array('World of Warcraft','Diablo 3', 'Hearthstone', 'Starcraft 2'),
-            'games_slug'         => array('wow', 'd3', 'hearthstone', 'sc2')
+            'region'        => '',
+            'realm_original' => '',
+            'guild_original' => '',
+            'games_original' => array('World of Warcraft', 'Diablo 3', 'Hearthstone', 'Starcraft 2'),
+            'games_slug'    => array('wow', 'd3', 'hearthstone', 'sc2')
         );
 
         // Save each setting
@@ -59,19 +57,5 @@ class Blizzard_Api_Activator {
                 update_option('blizzard_api_' . $key, $value);
             }
         }
-    }
-
-    /**
-     * Retrieve data from Blizzard.
-     *
-     * @since     1.0.0
-     * @return    array|null    The data received or null on error.
-     */
-    private static function get_blizzard_guild_data() {
-        return Blizzard_Api_Wow::get_blizzard_guild_data();
-    }
-
-	private static function get_blizzard_guild_roster_data() {
-		return Blizzard_Api_Wow::get_blizzard_guild_roster_data();
     }
 }

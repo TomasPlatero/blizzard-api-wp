@@ -213,4 +213,5 @@ class Blizzard_Api {
 	public function get_version() {
 		return $this->version;
 	}
+	
 }
