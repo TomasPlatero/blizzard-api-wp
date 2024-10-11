@@ -24,6 +24,7 @@ if (isset($_POST['submit'])) {
     update_option('blizzard_api_client_id', sanitize_text_field($_POST['client_id']));
     update_option('blizzard_api_client_secret', sanitize_text_field($_POST['client_secret']));
     update_option('blizzard_api_guild', sanitize_title($_POST['guild']));
+    update_option('blizzard_api_guild_original', $_POST['guild']);
 
     // Obtén el valor del reino y la región
     $region = sanitize_text_field($_POST['region']);

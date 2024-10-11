@@ -12,6 +12,7 @@
  * @subpackage Blizzard_Api/admin/partials
  */
 require_once plugin_dir_path( __DIR__ ) . '../includes/class-blizzard-api-data.php';
+require_once plugin_dir_path( __DIR__ ) . '../includes/raiderio/class-blizzard-api-raiderio.php';
 
 $transient_updated = false;
 $update_message = '';
@@ -29,7 +30,7 @@ if ( isset( $_POST['update_guild_data'] ) ) {
 }
 
 if ( isset( $_POST['update_guild_roster_data'] ) ) {
-    $data = Blizzard_Api_Data::get_blizzard_guild_roster_data();
+    $data = Blizzard_Api_RaiderIO::get_guild_members();
     
     if ($data === null) {
         $warning_message = __( 'Warning: The guild data could not be updated the response from blizzard was empty, check the plugin Settings', 'blizzard-api' );
