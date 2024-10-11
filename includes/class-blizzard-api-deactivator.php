@@ -33,7 +33,8 @@ class Blizzard_Api_Deactivator {
             'blizzard_api_games_original',
             'blizzard_api_games_slug',
             'blizzard_api_game',
-            'blizzard_api_character_name'
+            'blizzard_api_character_name',
+            'blizzard_api_current_step'
         );
 
         // Loop through options and delete them
