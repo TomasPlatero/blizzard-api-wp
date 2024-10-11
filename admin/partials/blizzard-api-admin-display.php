@@ -81,12 +81,11 @@ switch ($current_step) {
         break;
 
     case 'download_avatars':
-
         $roster_data = get_transient( "blizzard_guild_roster_data" );
         // Descargar los avatares de los miembros del roster (solo rangos deseados).
         foreach ($roster_data['members'] as $member) {
             if (in_array($member['rank'], array(0, 1, 2, 4, 5, 6))) {
-                $character_info = Blizzard_Api_RaiderIO::get_member_info($realm_slug, $member['character']['name']);
+                $character_info = Blizzard_Api_RaiderIO::get_member_info(sanitize_title($member['character']['realm']), $member['character']['name']);
                 if (!is_wp_error($character_info) && isset($character_info['local_image_id'])) {
                     update_option('blizzard_member_image_' . $member['character']['name'], $character_info['local_image_id']);
                 }
