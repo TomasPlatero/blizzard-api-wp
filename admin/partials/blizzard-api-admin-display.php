@@ -82,6 +82,7 @@ switch ($current_step) {
 
     case 'download_avatars':
 
+        $roster_data = get_transient( "blizzard_guild_roster_data" );
         // Descargar los avatares de los miembros del roster (solo rangos deseados).
         foreach ($roster_data['members'] as $member) {
             if (in_array($member['rank'], array(0, 1, 2, 4, 5, 6))) {
