@@ -146,4 +146,18 @@ public static function get_member_info($realm, $member) {
 
         return $attachment_id;
     }
+
+    public static function get_guild_raid_progress($region, $realm, $guild_slug) {
+        $url = "https://raider.io/api/v1/guilds/profile?region=$region&realm=$realm&name=$guild_slug&fields=raid_progression";
+    
+        $response = wp_remote_get($url);
+    
+        if (is_wp_error($response)) {
+            return $response;
+        }
+    
+        $body = wp_remote_retrieve_body($response);
+        return json_decode($body, true);
+    }
+    
 }
