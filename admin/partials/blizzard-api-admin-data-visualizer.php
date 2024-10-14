@@ -20,19 +20,10 @@ if (!current_user_can('manage_options')) {
 }
 
 // Obtener datos de la API
-$guild_data = get_transient( "blizzard_guild_data" );
 $roster_data = get_transient( "blizzard_guild_roster_data" );
 
 echo '<div class="wrap">';
 echo '<h1>' . __('Blizzard API JSON Viewer', 'blizzard-api') . '</h1>';
-
-// Mostrar datos de la hermandad
-echo '<h2>' . __('Guild Data', 'blizzard-api') . '</h2>';
-if ($guild_data !== null) {
-    echo '<pre><code class="json">' . json_encode($guild_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</code></pre>';
-} else {
-    echo '<p>' . __('No data available for guild.', 'blizzard-api') . '</p>';
-}
 
 // Mostrar datos del roster de la hermandad
 echo '<h2>' . __('Guild Roster Data', 'blizzard-api') . '</h2>';

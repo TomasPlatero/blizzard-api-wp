@@ -10,7 +10,7 @@
  * @subpackage Blizzard_Api/includes
  */
 
-class Blizzard_Api_RaiderIO {
+ class Blizzard_Api_RaiderIO {
 
     /**
      * Retrieve guild members from RaiderIO and update the transient if data changes.
@@ -20,7 +20,7 @@ class Blizzard_Api_RaiderIO {
      */
     public static function get_guild_members() {
         $cache_key = 'blizzard_guild_roster_data';
-        $cache_duration = 86400; // Cache for 24 hours
+        $cache_duration = DAY_IN_SECONDS; // Cache for 24 hours
 
         $region = get_option('blizzard_api_region');
         $realm = get_option('blizzard_api_realm');
@@ -37,6 +37,18 @@ class Blizzard_Api_RaiderIO {
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
+        // Si hay miembros en los datos recibidos, extraer los nombres de los miembros actuales.
+        if (isset($data['members']) && !empty($data['members'])) {
+            $current_member_names = array_map(function($member) {
+                return $member['character']['name'];
+            }, $data['members']);
+        } else {
+            $current_member_names = [];
+        }
+
+        // Revisar transients existentes y eliminar los que ya no estén en la respuesta de Raider.IO
+        self::cleanup_old_member_transients($current_member_names);
+
         // Retrieve the current cached data.
         $cached_data = get_transient($cache_key);
 
@@ -51,6 +63,31 @@ class Blizzard_Api_RaiderIO {
     }
 
     /**
+     * Cleanup old transients if the member is no longer in the guild.
+     * 
+     * @param array $current_member_names List of current guild member names.
+     * @since 1.0.0
+     */
+    private static function cleanup_old_member_transients($current_member_names) {
+        global $wpdb;
+        $transient_keys = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
+                '_transient_raiderio_member_%'
+            )
+        );
+
+        foreach ($transient_keys as $transient_key) {
+            $member_name = str_replace('_transient_raiderio_member_', '', $transient_key);
+
+            // Si el miembro no está en la lista actual, borrar el transient
+            if (!in_array($member_name, $current_member_names)) {
+                delete_transient('raiderio_member_' . $member_name);
+            }
+        }
+    }
+
+    /**
      * Retrieve information about a specific member from RaiderIO.
      *
      * @since 1.0.0
@@ -58,46 +95,45 @@ class Blizzard_Api_RaiderIO {
      * @param string $member The name of the member.
      * @return array|WP_Error The member data or a WP_Error on failure.
      */
-public static function get_member_info($realm, $member) {
-    $region = get_option('blizzard_api_region');
-    $cache_key = "raiderio_member_{$member}";
-    $cache_duration = 86400; // Cache duration in seconds (24 hours)
-    $realm = sanitize_title($realm);
-    $member = rawurlencode($member);
+    public static function get_member_info($realm, $member) {
+        $region = get_option('blizzard_api_region');
+        $cache_key = "raiderio_member_{$member}";
+        $cache_duration = DAY_IN_SECONDS; // Cache duration in seconds (24 hours)
+        $realm = sanitize_title($realm);
+        $member = rawurlencode($member);
 
-    $url = "https://raider.io/api/v1/characters/profile?region={$region}&realm={$realm}&name={$member}";
+        $url = "https://raider.io/api/v1/characters/profile?region={$region}&realm={$realm}&name={$member}";
 
-    $response = wp_remote_get($url);
-    if (is_wp_error($response)) {
-        return $response;
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-
-    // Obtener datos en caché
-    $cached_data = get_transient($cache_key);
-
-    // Reutilizar el local_image_id si ya existe y la URL de la imagen es la misma.
-    if (isset($cached_data['local_image_id']) && isset($cached_data['thumbnail_url']) && $cached_data['thumbnail_url'] === $data['thumbnail_url']) {
-        $data['local_image_id'] = $cached_data['local_image_id'];
-    } else {
-        // De lo contrario, guarda la nueva imagen localmente y actualiza el ID.
-        if (isset($data['thumbnail_url'])) {
-            $image_url = esc_url($data['thumbnail_url']);
-            $image_id = self::save_image_locally($image_url, $member);
-            $data['local_image_id'] = $image_id;
+        $response = wp_remote_get($url);
+        if (is_wp_error($response)) {
+            return $response;
         }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        // Obtener datos en caché
+        $cached_data = get_transient($cache_key);
+
+        // Reutilizar el local_image_id si ya existe y la URL de la imagen es la misma.
+        if (isset($cached_data['local_image_id']) && isset($cached_data['thumbnail_url']) && $cached_data['thumbnail_url'] === $data['thumbnail_url']) {
+            $data['local_image_id'] = $cached_data['local_image_id'];
+        } else {
+            // De lo contrario, guarda la nueva imagen localmente y actualiza el ID.
+            if (isset($data['thumbnail_url'])) {
+                $image_url = esc_url($data['thumbnail_url']);
+                $image_id = self::save_image_locally($image_url, $member);
+                $data['local_image_id'] = $image_id;
+            }
+        }
+
+        // Actualizar el transient solo si los datos han cambiado.
+        if (serialize($cached_data) !== serialize($data)) {
+            set_transient($cache_key, $data, $cache_duration);
+        }
+
+        return $data;
     }
-
-    // Actualizar el transient solo si los datos han cambiado.
-    if (serialize($cached_data) !== serialize($data)) {
-        set_transient($cache_key, $data, $cache_duration);
-    }
-
-    return $data;
-}
-
 
     /**
      * Save an image locally and add it to the WordPress media library.

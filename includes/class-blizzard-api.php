@@ -121,6 +121,7 @@ class Blizzard_Api {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-blizzard-api-public.php';
+		
 
 		$this->loader = new Blizzard_Api_Loader();
 
@@ -156,6 +157,8 @@ class Blizzard_Api {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'blizzard_update_guild_members_cron', $plugin_admin, 'blizzard_update_guild_members');
+
 	}
 
 	/**

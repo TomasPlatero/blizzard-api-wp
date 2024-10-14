@@ -64,7 +64,7 @@ class Blizzard_Api_Wow {
      */
     public static function get_blizzard_guild_data() {
         $cache_key = 'blizzard_guild_data';
-        $cache_duration = 86400;
+        $cache_duration = DAY_IN_SECONDS;
 
         $token = Blizzard_Api_Data::get_blizzard_token();
 

@@ -14,9 +14,11 @@ class Blizzard_Api_Deactivator {
     /**
      * Code to run during plugin deactivation.
      *
-     * @since    1.0.0
+     * @since 1.0.0
      */
     public static function deactivate() {
+        require_once plugin_dir_path( __FILE__ ) . '../includes/raiderio/class-blizzard-api-raiderio.php';
+
         // Delete the transients that cache the Blizzard data
         delete_transient('blizzard_guild_data');
         delete_transient('blizzard_guild_roster_data');
@@ -45,6 +47,12 @@ class Blizzard_Api_Deactivator {
         // Remove class, race, and avatar images from the media library
         self::delete_class_and_race_images();
         self::delete_character_avatar_images();
+
+        // Remove scheduled cron event
+        $timestamp = wp_next_scheduled('blizzard_update_guild_members_cron');
+        if ($timestamp) {
+            wp_unschedule_event($timestamp, 'blizzard_update_guild_members_cron');
+        }
     }
 
     /**
@@ -55,13 +63,13 @@ class Blizzard_Api_Deactivator {
     private static function delete_class_and_race_images() {
         // IDs of class and race images stored during activation
         $class_ids = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13); // Add all class IDs here
-        $race_ids = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 22, 24, 27, 28, 29, 30, 31, 34, 36, 52, 70, 85); // Add all race IDs here, including 85 for Earthen
+        $race_ids = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 22, 24, 27, 28, 29, 30, 31, 34, 36, 52, 70, 85); // Include Earthen (ID 85)
 
         // Delete class images
         foreach ($class_ids as $class_id) {
             $attachment_id = get_option('blizzard_class_image_' . $class_id);
             if ($attachment_id) {
-                wp_delete_attachment($attachment_id, true); // True to remove the file from the server
+                wp_delete_attachment($attachment_id, true); // Remove the file from the server
                 delete_option('blizzard_class_image_' . $class_id); // Clean up the option
             }
         }
@@ -70,7 +78,7 @@ class Blizzard_Api_Deactivator {
         foreach ($race_ids as $race_id) {
             $attachment_id = get_option('blizzard_race_image_' . $race_id);
             if ($attachment_id) {
-                wp_delete_attachment($attachment_id, true); // True to remove the file from the server
+                wp_delete_attachment($attachment_id, true); // Remove the file from the server
                 delete_option('blizzard_race_image_' . $race_id); // Clean up the option
             }
         }

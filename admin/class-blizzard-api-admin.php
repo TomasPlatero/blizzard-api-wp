@@ -1,5 +1,6 @@
 <?php
 require_once plugin_dir_path( __DIR__ ) . 'includes/class-blizzard-api-data.php';
+require_once plugin_dir_path( __DIR__ ) . '/includes/raiderio/class-blizzard-api-raiderio.php';
 
 /**
  * The admin-specific functionality of the plugin.
@@ -24,7 +25,6 @@ class Blizzard_Api_Admin {
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action('wp_ajax_blizzard_api_save_settings', array($this, 'blizzard_api_save_settings'));
-        add_action('wp_ajax_blizzard_api_fetch_next_step', array($this, 'blizzard_api_fetch_next_step'));
         
     }
 
@@ -138,49 +138,24 @@ class Blizzard_Api_Admin {
 		wp_send_json($response);
 	}
 	
-	public function blizzard_api_fetch_next_step() {
-		$step = isset($_POST['step']) ? sanitize_text_field($_POST['step']) : '';
-	
-		switch ($step) {
-			case 'fetch_guild_data':
-				Blizzard_Api_Wow::get_blizzard_guild_data();
-				$response = array(
-					'success' => true,
-					'data' => array(
-						'message' => __('Guild data fetched. Fetching roster data...', 'blizzard-api'),
-						'progress' => 30,
-						'next_step' => 'fetch_roster_data',
-					),
-				);
-				break;
-	
-			case 'fetch_roster_data':
-				Blizzard_Api_RaiderIO::get_guild_members();
-				$response = array(
-					'success' => true,
-					'data' => array(
-						'message' => __('Roster data fetched. Downloading images...', 'blizzard-api'),
-						'progress' => 60,
-						'next_step' => 'download_images',
-					),
-				);
-				break;
-	
-			case 'download_images':
-				$response = array(
-					'success' => true,
-					'data' => array(
-						'message' => __('Images downloaded. Finishing...', 'blizzard-api'),
-						'progress' => 100,
-					),
-				);
-				break;
-	
-			default:
-				$response = array('success' => false, 'data' => array('message' => __('Unknown step.', 'blizzard-api')));
-				break;
-		}
-	
-		wp_send_json($response);
-	}
+	/**
+     * Cron job function to update guild members and avatars.
+     */
+    public static function blizzard_update_guild_members() {
+        $guild_members = Blizzard_Api_RaiderIO::get_guild_members();
+
+        if (!is_wp_error($guild_members)) {
+            foreach ($guild_members['members'] as $member) {
+                // Solo procesar miembros con rango 0, 1, 2, 4, o 5
+                if (in_array($member['rank'], array(0, 1, 2, 4, 5, 6))) {
+                    $member_info = Blizzard_Api_RaiderIO::get_member_info($member['character']['realm'], $member['character']['name']);
+
+                    if (!is_wp_error($member_info) && isset($member_info['thumbnail_url'])) {
+                        // Guardar la imagen localmente si es necesario y actualizar el transient
+                        Blizzard_Api_RaiderIO::save_image_locally($member_info['thumbnail_url'], $member['character']['name']);
+                    }
+                }
+            }
+        }
+    }
 }
