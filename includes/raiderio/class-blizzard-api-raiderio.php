@@ -20,7 +20,7 @@
      */
     public static function get_guild_members() {
         $cache_key = 'blizzard_guild_roster_data';
-        $cache_duration = DAY_IN_SECONDS; // Cache for 24 hours
+        $cache_duration = WEEK_IN_SECONDS;
 
         $region = get_option('blizzard_api_region');
         $realm = get_option('blizzard_api_realm');
@@ -98,7 +98,7 @@
     public static function get_member_info($realm, $member) {
         $region = get_option('blizzard_api_region');
         $cache_key = "raiderio_member_{$member}";
-        $cache_duration = DAY_IN_SECONDS; // Cache duration in seconds (24 hours)
+        $cache_duration = WEEK_IN_SECONDS;
         $realm = sanitize_title($realm);
         $member = rawurlencode($member);
 
