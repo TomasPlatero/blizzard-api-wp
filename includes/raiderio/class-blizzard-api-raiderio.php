@@ -197,7 +197,7 @@
      */
     public static function get_attachment_id_by_filename($filename) {
         global $wpdb;
-        $query = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid LIKE %s", '%' . $wpdb->esc_like($filename) . '%');
+        $query = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_title  LIKE %s", '%' . $wpdb->esc_like($filename) . '%');
         $attachment_id = $wpdb->get_var($query);
 
         return $attachment_id ? (int) $attachment_id : false;
