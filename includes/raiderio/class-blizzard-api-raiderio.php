@@ -144,8 +144,21 @@
      * @return int|false The attachment ID of the saved image, or false on failure.
      */
     public static function save_image_locally($image_url, $member_name) {
-        $response = wp_remote_get($image_url, array('timeout' => 10));
+        // Verificar si ya existe un adjunto con el mismo nombre de archivo
+        $filename = sanitize_file_name($member_name) . '.jpg';
+        $upload_dir = wp_upload_dir();
+        $file_path = $upload_dir['path'] . '/' . $filename;
 
+        // Buscar si el archivo ya está en la galería de medios
+        $attachment_id = self::get_attachment_id_by_filename($filename);
+
+        if ($attachment_id) {
+            // Si ya existe el archivo, devolver su ID de adjunto
+            return $attachment_id;
+        }
+
+        // Si no existe, descargar la imagen y guardarla localmente
+        $response = wp_remote_get($image_url, array('timeout' => 10));
         if (is_wp_error($response)) {
             return false;
         }
@@ -155,17 +168,10 @@
             return false;
         }
 
-        // Set the filename for the image.
-        $filename = sanitize_file_name($member_name) . '.jpg';
-        $upload_dir = wp_upload_dir();
-
-        // Determine the file path.
-        $file_path = $upload_dir['path'] . '/' . $filename;
-
-        // Save the image to the local filesystem.
+        // Guardar la imagen en el sistema de archivos local
         file_put_contents($file_path, $image_data);
 
-        // Prepare the file for WordPress media library.
+        // Preparar el archivo para la biblioteca de medios de WordPress
         $file_type = wp_check_filetype($filename, null);
         $attachment = array(
             'post_mime_type' => $file_type['type'],
@@ -174,13 +180,27 @@
             'post_status'    => 'inherit',
         );
 
-        // Insert the attachment into the WordPress media library.
+        // Insertar el archivo adjunto en la biblioteca de medios
         $attachment_id = wp_insert_attachment($attachment, $file_path);
         require_once(ABSPATH . 'wp-admin/includes/image.php');
         $attach_data = wp_generate_attachment_metadata($attachment_id, $file_path);
         wp_update_attachment_metadata($attachment_id, $attach_data);
 
         return $attachment_id;
+    }
+
+    /**
+     * Get the attachment ID by filename.
+     *
+     * @param string $filename The name of the file to search.
+     * @return int|false The attachment ID, or false if not found.
+     */
+    public static function get_attachment_id_by_filename($filename) {
+        global $wpdb;
+        $query = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid LIKE %s", '%' . $wpdb->esc_like($filename) . '%');
+        $attachment_id = $wpdb->get_var($query);
+
+        return $attachment_id ? (int) $attachment_id : false;
     }
 
     public static function get_guild_raid_progress($region, $realm, $guild_slug) {
