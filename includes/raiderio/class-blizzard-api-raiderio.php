@@ -10,85 +10,111 @@
  * @subpackage Blizzard_Api/includes
  */
 
- class Blizzard_Api_RaiderIO {
+class Blizzard_Api_RaiderIO {
 
     /**
-     * Retrieve guild members from RaiderIO and update the transient if data changes.
+     * Retrieve guild members from RaiderIO and store the data in the database.
      *
      * @since 1.0.0
      * @return array|WP_Error The guild member data or a WP_Error on failure.
      */
     public static function get_guild_members() {
-        $cache_key = 'blizzard_guild_roster_data';
-        $cache_duration = WEEK_IN_SECONDS;
-
         $region = get_option('blizzard_api_region');
         $realm = get_option('blizzard_api_realm');
         $guild = rawurlencode(get_option('blizzard_api_guild_original'));
         
         $url = "https://raider.io/api/v1/guilds/profile?region={$region}&realm={$realm}&name={$guild}&fields=members";
-
-        // Make the request to the Raider.IO API.
+    
+        // Hacer la solicitud a la API de Raider.IO.
         $response = wp_remote_get($url);
         if (is_wp_error($response)) {
             return $response;
         }
-
+    
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
-
-        // Si hay miembros en los datos recibidos, extraer los nombres de los miembros actuales.
-        if (isset($data['members']) && !empty($data['members'])) {
-            $current_member_names = array_map(function($member) {
-                return $member['character']['name'];
-            }, $data['members']);
-        } else {
-            $current_member_names = [];
-        }
-
-        // Revisar transients existentes y eliminar los que ya no estén en la respuesta de Raider.IO
-        self::cleanup_old_member_transients($current_member_names);
-
-        // Retrieve the current cached data.
-        $cached_data = get_transient($cache_key);
-
-        // Compare the new data with the cached data.
-        if ($cached_data !== $data) {
-            // If the data is different, update the transient.
-            set_transient($cache_key, $data, $cache_duration);
-        }
-
-        // Return the current data (either new or cached).
-        return $data;
-    }
-
-    /**
-     * Cleanup old transients if the member is no longer in the guild.
-     * 
-     * @param array $current_member_names List of current guild member names.
-     * @since 1.0.0
-     */
-    private static function cleanup_old_member_transients($current_member_names) {
-        global $wpdb;
-        $transient_keys = $wpdb->get_col(
-            $wpdb->prepare(
-                "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
-                '_transient_raiderio_member_%'
-            )
-        );
-
-        foreach ($transient_keys as $transient_key) {
-            $member_name = str_replace('_transient_raiderio_member_', '', $transient_key);
-
-            // Si el miembro no está en la lista actual, borrar el transient
-            if (!in_array($member_name, $current_member_names)) {
-                delete_transient('raiderio_member_' . $member_name);
+    
+        // Filtrar los miembros de Raider.IO por rangos permitidos
+        $allowed_ranks = array(0, 1, 2, 4, 5, 6);
+        $filtered_members = array();
+    
+        if (isset($data['members']) && is_array($data['members']) && !empty($data['members'])) {
+            foreach ($data['members'] as $member) {
+                if (isset($member['character']['name']) && in_array($member['rank'], $allowed_ranks)) {
+                    // Solo agregamos los miembros permitidos basados en los rangos permitidos
+                    $filtered_members[] = $member;
+                }
             }
         }
+    
+        // Guardar los miembros filtrados de Raider.IO en el option 'blizzard_guild_raiderio'
+        update_option('blizzard_guild_raiderio', $filtered_members);
+    
+        // Obtener los datos actuales de los miembros (o inicializar como un array vacío)
+        $saved_members_data = get_option('blizzard_guild_members', array());
+    
+        // Procesar los miembros filtrados para comparar y actualizar datos
+        foreach ($filtered_members as $member) {
+            $member_name = $member['character']['name'];
+
+            // Obtener la información adicional del miembro desde RaiderIO
+            $member_info = self::get_member_info($member['character']['realm'], $member_name);
+    
+            // Si no hubo errores al obtener la información del miembro
+            if (!is_wp_error($member_info)) {
+                // Verificar si hay cambios en los datos (rango, clase, raza, imagen)
+                $updated = false;
+                if (isset($saved_members_data[$member_name])) {
+                    $existing_member = $saved_members_data[$member_name];
+
+                    // Comprobar si hay cambios en rango, clase, raza o imagen
+                    if ($existing_member['rank'] != $member['rank']) {
+                        $saved_members_data[$member_name]['rank'] = $member['rank'];
+                        $updated = true;
+                    }
+                    if ($existing_member['class'] != $member['character']['class']) {
+                        $saved_members_data[$member_name]['class'] = $member['character']['class'];
+                        $updated = true;
+                    }
+                    if ($existing_member['race'] != $member['character']['race']) {
+                        $saved_members_data[$member_name]['race'] = $member['character']['race'];
+                        $updated = true;
+                    }
+                    if (isset($member_info['thumbnail_url']) && $existing_member['thumbnail_url'] != $member_info['thumbnail_url']) {
+                        $saved_members_data[$member_name]['thumbnail_url'] = $member_info['thumbnail_url'];
+                        $updated = true;
+                    }
+                } else {
+                    // Si el miembro no está en los datos guardados, agregarlo
+                    $updated = true;
+                }
+    
+                // Si hubo cambios o el miembro es nuevo, actualizar los datos
+                if ($updated) {
+                    $member_data = array(
+                        'name' => $member_name,
+                        'realm' => $member['character']['realm'],
+                        'rank' => $member['rank'],
+                        'race' => $member['character']['race'],
+                        'class' => $member['character']['class'],
+                        'thumbnail_url' => isset($member_info['thumbnail_url']) ? $member_info['thumbnail_url'] : null
+                    );
+    
+                    // Guardar o actualizar los datos del miembro en el array de miembros
+                    $saved_members_data[$member_name] = $member_data;
+                }
+            }
+        }
+    
+        // Guardar los datos procesados de los miembros en el option 'blizzard_guild_members'
+        update_option('blizzard_guild_members', $saved_members_data);
+    
+        // Retornar los datos actuales procesados
+        return $saved_members_data;
     }
 
     /**
-     * Retrieve information about a specific member from RaiderIO.
+     * Retrieve information about a specific member from RaiderIO and return the data.
      *
      * @since 1.0.0
      * @param string $realm The realm of the member.
@@ -97,13 +123,12 @@
      */
     public static function get_member_info($realm, $member) {
         $region = get_option('blizzard_api_region');
-        $cache_key = "raiderio_member_{$member}";
-        $cache_duration = WEEK_IN_SECONDS;
         $realm = sanitize_title($realm);
         $member = rawurlencode($member);
 
         $url = "https://raider.io/api/v1/characters/profile?region={$region}&realm={$realm}&name={$member}";
 
+        // Hacer la solicitud a la API de Raider.IO.
         $response = wp_remote_get($url);
         if (is_wp_error($response)) {
             return $response;
@@ -112,97 +137,20 @@
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
-        // Obtener datos en caché
-        $cached_data = get_transient($cache_key);
-
-        // Reutilizar el local_image_id si ya existe y la URL de la imagen es la misma.
-        if (isset($cached_data['local_image_id']) && isset($cached_data['thumbnail_url']) && $cached_data['thumbnail_url'] === $data['thumbnail_url']) {
-            $data['local_image_id'] = $cached_data['local_image_id'];
-        } else {
-            // De lo contrario, guarda la nueva imagen localmente y actualiza el ID.
-            if (isset($data['thumbnail_url'])) {
-                $image_url = esc_url($data['thumbnail_url']);
-                $image_id = self::save_image_locally($image_url, $member);
-                $data['local_image_id'] = $image_id;
-            }
-        }
-
-        // Actualizar el transient solo si los datos han cambiado.
-        if (serialize($cached_data) !== serialize($data)) {
-            set_transient($cache_key, $data, $cache_duration);
-        }
-
+        // Retornar los datos del miembro obtenidos de Raider.IO
         return $data;
     }
 
+    
     /**
-     * Save an image locally and add it to the WordPress media library.
+     * Retrieve the raid progression data for a guild from Raider.IO.
      *
-     * @since 1.0.0
-     * @param string $image_url The URL of the image to download.
-     * @param string $member_name The name of the member for naming the image file.
-     * @return int|false The attachment ID of the saved image, or false on failure.
-     */
-    public static function save_image_locally($image_url, $member_name) {
-        // Verificar si ya existe un adjunto con el mismo nombre de archivo
-        $filename = sanitize_file_name($member_name) . '.jpg';
-        $upload_dir = wp_upload_dir();
-        $file_path = $upload_dir['path'] . '/' . $filename;
-
-        // Buscar si el archivo ya está en la galería de medios
-        $attachment_id = self::get_attachment_id_by_filename($filename);
-
-        if ($attachment_id) {
-            // Si ya existe el archivo, devolver su ID de adjunto
-            return $attachment_id;
-        }
-
-        // Si no existe, descargar la imagen y guardarla localmente
-        $response = wp_remote_get($image_url, array('timeout' => 10));
-        if (is_wp_error($response)) {
-            return false;
-        }
-
-        $image_data = wp_remote_retrieve_body($response);
-        if (empty($image_data)) {
-            return false;
-        }
-
-        // Guardar la imagen en el sistema de archivos local
-        file_put_contents($file_path, $image_data);
-
-        // Preparar el archivo para la biblioteca de medios de WordPress
-        $file_type = wp_check_filetype($filename, null);
-        $attachment = array(
-            'post_mime_type' => $file_type['type'],
-            'post_title'     => sanitize_file_name($filename),
-            'post_content'   => '',
-            'post_status'    => 'inherit',
-        );
-
-        // Insertar el archivo adjunto en la biblioteca de medios
-        $attachment_id = wp_insert_attachment($attachment, $file_path);
-        require_once(ABSPATH . 'wp-admin/includes/image.php');
-        $attach_data = wp_generate_attachment_metadata($attachment_id, $file_path);
-        wp_update_attachment_metadata($attachment_id, $attach_data);
-
-        return $attachment_id;
-    }
-
-    /**
-     * Get the attachment ID by filename.
+     * @param string $region The region where the guild is located (e.g., 'us', 'eu').
+     * @param string $realm The name of the realm where the guild is located (e.g., 'stormrage').
+     * @param string $guild_slug The URL-friendly version (slug) of the guild name (e.g., 'my-guild').
      *
-     * @param string $filename The name of the file to search.
-     * @return int|false The attachment ID, or false if not found.
+     * @return array|WP_Error The decoded raid progression data from Raider.IO on success, or a WP_Error on failure.
      */
-    public static function get_attachment_id_by_filename($filename) {
-        global $wpdb;
-        $query = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_title  LIKE %s", '%' . $wpdb->esc_like($filename) . '%');
-        $attachment_id = $wpdb->get_var($query);
-
-        return $attachment_id ? (int) $attachment_id : false;
-    }
-
     public static function get_guild_raid_progress($region, $realm, $guild_slug) {
         $url = "https://raider.io/api/v1/guilds/profile?region=$region&realm=$realm&name=$guild_slug&fields=raid_progression";
     
@@ -215,5 +163,4 @@
         $body = wp_remote_retrieve_body($response);
         return json_decode($body, true);
     }
-    
 }

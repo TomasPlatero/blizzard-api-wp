@@ -25,7 +25,16 @@ class Blizzard_Api_Admin {
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action('wp_ajax_blizzard_api_save_settings', array($this, 'blizzard_api_save_settings'));
-        
+
+        // Agregar el filtro en el archivo principal
+        add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_plugin_action_links' ) );
+    }
+
+    // Función para agregar el enlace "Settings" en la lista de plugins
+    public function add_plugin_action_links( $links ) {
+        $settings_link = '<a href="admin.php?page=blizzard-api-settings">' . __( 'Settings', 'blizzard-api' ) . '</a>';
+        array_unshift( $links, $settings_link );
+        return $links;
     }
 
 	public function enqueue_styles() {
@@ -139,23 +148,20 @@ class Blizzard_Api_Admin {
 	}
 	
 	/**
-     * Cron job function to update guild members and avatars.
+     * Cron job function to update guild members.
      */
     public static function blizzard_update_guild_members() {
         $guild_members = Blizzard_Api_RaiderIO::get_guild_members();
 
         if (!is_wp_error($guild_members)) {
-            foreach ($guild_members['members'] as $member) {
+            foreach ($guild_members as $member) {
                 // Solo procesar miembros con rango 0, 1, 2, 4, o 5
                 if (in_array($member['rank'], array(0, 1, 2, 4, 5, 6))) {
-                    $member_info = Blizzard_Api_RaiderIO::get_member_info($member['character']['realm'], $member['character']['name']);
-
-                    if (!is_wp_error($member_info) && isset($member_info['thumbnail_url'])) {
-                        // Guardar la imagen localmente si es necesario y actualizar el transient
-                        Blizzard_Api_RaiderIO::save_image_locally($member_info['thumbnail_url'], $member['character']['name']);
-                    }
+                    // Obtener la información del miembro
+                    $member_info = Blizzard_Api_RaiderIO::get_member_info($member['realm'], $member['name']);
                 }
             }
         }
     }
+
 }

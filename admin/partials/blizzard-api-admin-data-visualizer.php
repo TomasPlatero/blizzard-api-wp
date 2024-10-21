@@ -20,18 +20,27 @@ if (!current_user_can('manage_options')) {
 }
 
 // Obtener datos de la API
-$roster_data = get_transient( "blizzard_guild_roster_data" );
-
+$roster_data = get_option("blizzard_guild_roster_data" );
+$guild_members = get_option( "blizzard_guild_members" );
 echo '<div class="wrap">';
 echo '<h1>' . __('Blizzard API JSON Viewer', 'blizzard-api') . '</h1>';
 
 // Mostrar datos del roster de la hermandad
-echo '<h2>' . __('Guild Roster Data', 'blizzard-api') . '</h2>';
+echo '<h2>' . __('Raider.io Member Data', 'blizzard-api') . '</h2>';
 if ($roster_data !== null) {
     echo '<pre><code class="json">' . json_encode($roster_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</code></pre>';
 } else {
     echo '<p>' . __('No data available for guild roster.', 'blizzard-api') . '</p>';
 }
+
+// Mostrar datos del roster de la hermandad
+echo '<h2>' . __('Guild Roster Data', 'blizzard-api') . '</h2>';
+if ($guild_members !== null) {
+    echo '<pre><code class="json">' . json_encode($guild_members, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</code></pre>';
+} else {
+    echo '<p>' . __('No data available for guild roster.', 'blizzard-api') . '</p>';
+}
+
 
 echo '</div>';
 
