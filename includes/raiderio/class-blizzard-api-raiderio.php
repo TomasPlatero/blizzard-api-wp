@@ -81,7 +81,8 @@ class Blizzard_Api_RaiderIO {
                         $updated = true;
                     }
                     if (isset($member_info['thumbnail_url']) && $existing_member['thumbnail_url'] != $member_info['thumbnail_url']) {
-                        $saved_members_data[$member_name]['thumbnail_url'] = $member_info['thumbnail_url'];
+                        $thumbnail_path = self::download_image_locally($member_info['thumbnail_url'], $member_name);
+                        $saved_members_data[$member_name]['thumbnail_url'] = $thumbnail_path;
                         $updated = true;
                     }
                 } else {
@@ -97,7 +98,8 @@ class Blizzard_Api_RaiderIO {
                         'rank' => $member['rank'],
                         'race' => $member['character']['race'],
                         'class' => $member['character']['class'],
-                        'thumbnail_url' => isset($member_info['thumbnail_url']) ? $member_info['thumbnail_url'] : null
+                        'gender' => $member['character']['class'],
+                        'thumbnail_url' => isset($member_info['thumbnail_url']) ? $thumbnail_path : null
                     );
     
                     // Guardar o actualizar los datos del miembro en el array de miembros
@@ -111,6 +113,43 @@ class Blizzard_Api_RaiderIO {
     
         // Retornar los datos actuales procesados
         return $saved_members_data;
+    }
+
+    /**
+     * Descargar la imagen desde la URL y guardarla en el directorio del theme.
+     *
+     * @since 1.0.0
+     * @param string $image_url URL de la imagen a descargar.
+     * @param string $member_name Nombre del miembro (para nombrar la imagen).
+     * @return string La ruta completa de la imagen guardada.
+     */
+    public static function download_image_locally($image_url, $member_name) {
+        // Directorio donde se guardarán las imágenes
+        $upload_dir = get_stylesheet_directory() . '/assets/images';
+
+        // Crear el directorio si no existe
+        if (!file_exists($upload_dir)) {
+            wp_mkdir_p($upload_dir);
+        }
+
+        // Nombre del archivo
+        $filename = sanitize_file_name($member_name) . '.jpg';
+        $file_path = $upload_dir . '/' . $filename;
+
+        // Descargar la imagen desde la URL
+        $response = wp_remote_get($image_url, array('timeout' => 10));
+        if (is_wp_error($response)) {
+            return '';
+        }
+
+        // Guardar el contenido de la imagen en un archivo local
+        $image_data = wp_remote_retrieve_body($response);
+        if (!empty($image_data)) {
+            file_put_contents($file_path, $image_data);
+        }
+
+        // Devolver la ruta relativa al tema para usar en las plantillas
+        return get_stylesheet_directory_uri() . '/assets/images/' . $filename;
     }
 
     /**
@@ -141,7 +180,6 @@ class Blizzard_Api_RaiderIO {
         return $data;
     }
 
-    
     /**
      * Retrieve the raid progression data for a guild from Raider.IO.
      *
