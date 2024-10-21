@@ -98,7 +98,7 @@ class Blizzard_Api_RaiderIO {
                         'rank' => $member['rank'],
                         'race' => $member['character']['race'],
                         'class' => $member['character']['class'],
-                        'gender' => $member['character']['class'],
+                        'gender' => $member['character']['gender'],
                         'thumbnail_url' => isset($member_info['thumbnail_url']) ? $thumbnail_path : null
                     );
     
@@ -133,7 +133,7 @@ class Blizzard_Api_RaiderIO {
         }
 
         // Nombre del archivo
-        $filename = sanitize_file_name($member_name) . '.jpg';
+        $filename = 'Avatar_' . sanitize_file_name($member_name) . '.jpg';
         $file_path = $upload_dir . '/' . $filename;
 
         // Descargar la imagen desde la URL

@@ -36,11 +36,26 @@ class Blizzard_Api_Deactivator {
         foreach ($options as $option) {
             delete_option($option);
         }
-        
-         // Remover eventos de CRON programados para actualizar miembros.
-         $timestamp = wp_next_scheduled('blizzard_update_guild_members_cron');
-         if ($timestamp) {
-             wp_unschedule_event($timestamp, 'blizzard_update_guild_members_cron');
-         }
-     }
+
+        // Remove scheduled CRON events for updating guild members
+        $timestamp = wp_next_scheduled('blizzard_update_guild_members_cron');
+        if ($timestamp) {
+            wp_unschedule_event($timestamp, 'blizzard_update_guild_members_cron');
+        }
+
+        // Delete only avatar images in the assets/images directory
+        $images_dir = get_stylesheet_directory() . '/assets/images';
+
+        if (is_dir($images_dir)) {
+            // Use a pattern to identify avatar files, for example files with names that start with "avatar_" or any specific pattern
+            $avatar_files = glob($images_dir . '/Avatar_*.jpg'); // Example pattern: "avatar_" prefix with .jpg extension
+
+            // Loop through and delete each avatar file
+            foreach ($avatar_files as $file) {
+                if (is_file($file)) {
+                    unlink($file); // Delete the file
+                }
+            }
+        }
+    }
 }

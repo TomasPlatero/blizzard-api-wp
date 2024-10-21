@@ -152,16 +152,6 @@ class Blizzard_Api_Admin {
      */
     public static function blizzard_update_guild_members() {
         $guild_members = Blizzard_Api_RaiderIO::get_guild_members();
-
-        if (!is_wp_error($guild_members)) {
-            foreach ($guild_members as $member) {
-                // Solo procesar miembros con rango 0, 1, 2, 4, o 5
-                if (in_array($member['rank'], array(0, 1, 2, 4, 5, 6))) {
-                    // Obtener la información del miembro
-                    $member_info = Blizzard_Api_RaiderIO::get_member_info($member['realm'], $member['name']);
-                }
-            }
-        }
     }
 
 }
